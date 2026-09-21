@@ -139,9 +139,6 @@ def build_main_keyboard() -> str:
     kb.add_button("Курс USD", color=VkKeyboardColor.PRIMARY, payload={"cmd": "currency", "code": "USD"})
     kb.add_button("Курс EUR", color=VkKeyboardColor.PRIMARY, payload={"cmd": "currency", "code": "EUR"})
     kb.add_button("Курс CNY", color=VkKeyboardColor.PRIMARY, payload={"cmd": "currency", "code": "CNY"})
-    kb.add_line()
-    kb.add_button("100 $ в ₽", color=VkKeyboardColor.SECONDARY, payload={"cmd": "convert", "amount": 100, "code": "USD"})
-    kb.add_button("Динамика USD", color=VkKeyboardColor.SECONDARY, payload={"cmd": "dynamics", "code": "USD"})
     return kb.get_keyboard()
 
 
@@ -304,10 +301,11 @@ class VKCurrencyBot:
             except (json.JSONDecodeError, TypeError):
                 pass
 
-        cmd, arg = _parse_command(text)
-        if cmd is None:
+        parsed = _parse_command(text)
+        if parsed is None:
             self._send(user_id, "🤔 Не понял. Нажмите кнопку или напишите «помощь».", keyboard=build_main_keyboard())
             return
+        cmd, arg = parsed
         self._dispatch(user_id, cmd, arg)
 
     def _dispatch(self, user_id: int, cmd: str, arg: str) -> None:

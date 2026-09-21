@@ -109,10 +109,8 @@ class CBRAPI:
 
         return resp.json()
 
-    def _parse_valute(self, code: str, valute: dict[str, Any], rate_date: str) -> CurrencyRate:
-        if code not in valute:
-            raise CurrencyNotFoundError(f"Валюта «{code}» не найдена. Проверьте код (например USD, EUR).")
-        v = valute[code]
+    @staticmethod
+    def _build_rate(v: dict[str, Any], rate_date: str) -> CurrencyRate:
         return CurrencyRate(
             code=v["CharCode"],
             name=v["Name"],
@@ -121,6 +119,11 @@ class CBRAPI:
             previous=float(v["Previous"]),
             rate_date=rate_date,
         )
+
+    def _parse_valute(self, code: str, valute: dict[str, Any], rate_date: str) -> CurrencyRate:
+        if code not in valute:
+            raise CurrencyNotFoundError(f"Валюта «{code}» не найдена. Проверьте код (например USD, EUR).")
+        return self._build_rate(valute[code], rate_date)
 
     @staticmethod
     def _format_date(raw: str) -> str:
@@ -140,7 +143,7 @@ class CBRAPI:
         data = self._make_request(self._URL_DAILY)
         rate_date = self._format_date(data.get("Date", ""))
         return {
-            code: self._parse_valute(code, v, rate_date)
+            code: self._build_rate(v, rate_date)
             for code, v in data.get("Valute", {}).items()
         }
 
